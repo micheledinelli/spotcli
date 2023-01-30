@@ -12,7 +12,6 @@ import os, re
 import spoty_client
 
 console = Console()
-sp = None
 app = typer.Typer()
 
 @app.command(short_help="return recent tracks of the user")
@@ -38,10 +37,10 @@ def login():
 
 @app.command(short_help="returns info about the current user")
 def whoami():
-    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="a80867c5ce9640d4888f52ac2223df83",
-                                                    client_secret="c7f0223ecf524f05b5126eaff343c1db",
-                                                    redirect_uri="http://localhost:8081",
-                                                    scope="user-library-read"))
+    sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=spoty_client.client_id,
+                                                    client_secret=spoty_client.client_secret,
+                                                    redirect_uri=spoty_client.redirect_uri,
+                                                    scope=spoty_client.scope))
     table = Table(show_header=True, header_style="bold blue")
     table.add_column("username", min_width=25)
     table.add_column("followers", min_width=20, justify="center")
