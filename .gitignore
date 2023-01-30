@@ -1,3 +1,4 @@
 .cache
+.gitconfig
 spoty_client.py
 /__pycache__
