@@ -7,6 +7,9 @@ from spotipy.oauth2 import SpotifyOAuth
 from spotipy import util
 import os, re
 import spoty_client
+import inquirer
+from pprint import pprint
+import webbrowser
 
 console = Console()
 app = typer.Typer()
@@ -72,7 +75,7 @@ def whoami():
     table.add_column("followers", min_width=20, justify="center")
     table.add_column("url", min_width=20)
     results = sp.current_user()
-    table.add_row(results['id'], str(results['followers']['total']), results['href'])
+    table.add_row(results['display_name'], str(results['followers']['total']), results['href'])
     console.print(table)
 
 @app.command(short_help="clear the cached token")
@@ -80,6 +83,30 @@ def clear_cache():
     for f in os.listdir('./'):
         if re.search('^\.cache', f):
             os.remove(f)      
+
+@app.command()
+def search(q: str = typer.Argument("", help="query"), limit: int = typer.Option(5, help="number of results")):
+    token = isAuth()
+    sp = spotipy.Spotify(auth=token)
+    results = sp.search(q=q, limit=limit)
+    choices = []
+    songs_dict = results['tracks']
+    song_items = songs_dict['items']
+    uris = []
+    for idx, item in enumerate(song_items):
+        choices.append(item['name'])
+        uris.append(item['external_urls']['spotify'])
+
+    questions = [
+        inquirer.List(
+            "tracks",
+            message="Which song do you want to play?",
+            choices=choices,
+        ),
+    ]
+    answers = inquirer.prompt(questions)
+    pprint(answers)
+    webbrowser.open(uris[0])
 
 if __name__ == "__main__":
     app()
