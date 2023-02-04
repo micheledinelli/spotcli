@@ -2,7 +2,7 @@
 
 A cli tool to interact with you spotify account
 
-![alt text]([https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true](https://user-images.githubusercontent.com/95191347/216766200-b821fec1-f500-4944-9e56-0d22fe8169f5.png))
+![alt text](https://user-images.githubusercontent.com/95191347/216766200-b821fec1-f500-4944-9e56-0d22fe8169f5.png)
 
 ## Install and run
 
