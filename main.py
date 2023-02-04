@@ -12,50 +12,44 @@ import time
 import webbrowser
 from tqdm import tqdm
 from alive_progress import alive_bar
+import threading
+import sys
+
+# custom modules
+import modules.auth as auth
+import modules.utils as utils
+import modules.player as player
 
 console = Console()
+
 app = typer.Typer()
+
 sp_oauth = spotipy.SpotifyOAuth(client_id=spoty_client.client_id,
                             client_secret=spoty_client.client_secret,
                             redirect_uri=spoty_client.redirect_uri,
                             scope=spoty_client.scope)
 
-def isAuth():
-    cached_token = sp_oauth.get_cached_token()
-    if cached_token:
-        if not sp_oauth.is_token_expired(cached_token):
-            # refresh_token()
-            return cached_token["access_token"]
-    else:
-        print("Please login first")
+# Auth and token stuff
 
 @app.command(short_help="login")
 def login(verbose: bool = typer.Option(False, help="print the token retrieved")):
-    token = util.prompt_for_user_token(client_id=spoty_client.client_id,
-                                        client_secret=spoty_client.client_secret,
-                                        redirect_uri=spoty_client.redirect_uri,
-                                        scope=spoty_client.scope)
-    if token:
-        print("Succesfully logged in")
-        if verbose: 
-            print(token)
-        return token
-    else:
-        print("Can't get a valid access token")
+    return auth.login(verbose)
 
 @app.command(short_help="refresh the access token")
 def refresh_token(verbose: bool = typer.Option(False, help="print the refreshed token")):
-    if sp_oauth.get_cached_token():
-        cached_token = sp_oauth.get_cached_token()
-        token = sp_oauth.refresh_access_token(cached_token["refresh_token"])
-        if verbose:
-            print(token["access_token"]) 
-    else:
-        print("No token found")              
+    auth.refresh_token(sp_oauth, verbose)     
+
+# Utils stuff
+
+@app.command(short_help="clear the cached token")
+def clear_cache():
+    utils.clear_cache() 
+
+# Client operation  
 
 @app.command(short_help="return recent tracks of the user")
 def recent_tracks(howmany: Optional[int] = typer.Argument(10)):
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     table = Table(show_header=True, header_style="bold blue")
     table.add_column("#", style="dim", width=5)
@@ -70,7 +64,7 @@ def recent_tracks(howmany: Optional[int] = typer.Argument(10)):
 
 @app.command(short_help="returns info about the current user")
 def whoami():
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     table = Table(show_header=True, header_style="bold blue")
     table.add_column("username", min_width=25)
@@ -80,15 +74,9 @@ def whoami():
     table.add_row(results['display_name'], str(results['followers']['total']), results['href'])
     console.print(table)
 
-@app.command(short_help="clear the cached token")
-def clear_cache():
-    for f in os.listdir('./'):
-        if re.search('^\.cache', f):
-            os.remove(f)     
-
 @app.command(short_help="available devices")
 def devices(show: bool = typer.Option(False, help="show the available devices")):
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     devices_dict = sp.devices()
     device_list = devices_dict["devices"]
@@ -105,13 +93,13 @@ def devices(show: bool = typer.Option(False, help="show the available devices"))
     return device_list
 
 def queue(uri, device_id=None):
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     sp.add_to_queue(uri, device_id=device_id)
 
 @app.command()
 def search(q: str = typer.Argument("", help="query"), limit: int = typer.Option(5, help="number of results")):
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     results = sp.search(q=q, limit=limit)
     songs_dict = results['tracks']
@@ -144,11 +132,11 @@ def search(q: str = typer.Argument("", help="query"), limit: int = typer.Option(
         transfer_on_wb(uri)
     else:
         queue(uri=uri, device_id=active_id) 
-        sp.next_track(device_id=active_id)
+        player.next(token, active_id)
 
 @app.command(short_help="transfer playback on selected device")
 def transfer():
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     device_list = devices(show=False)
     names_id_dict = {}
@@ -168,32 +156,24 @@ def transfer():
 
 def transfer_on_wb(uri):
     time.sleep(5)
-    token = isAuth()
+    token = auth.is_auth(sp_oauth)
     sp = spotipy.Spotify(auth=token)
     device_list = devices(show=False)
     print(device_list)
     device_id = device_list[0]["id"]
     sp.transfer_playback(device_id=device_id, force_play=True)
     queue(uri=uri)
-    sp.next_track()
+    sp.next_track(device_id)
 
-@app.command(short_help="stick to the queue")
-def stick():
-    token = isAuth()
+def get_an_active_id(token):
     sp = spotipy.Spotify(auth=token)
-    console.clear()
-    table = Table(show_header=True, header_style="bold blue")
-    table.add_column("name", min_width=30, justify="center")
-    table.add_column("artist", min_width=30, justify="center")
-    table.add_column("album", min_width=30, justify="center")
-    current_track = sp.current_user_playing_track()
-    table.add_row(current_track["item"]["name"], current_track["item"]["artists"][0]["name"], current_track["item"]["album"]["name"], )
-    console.print(table)    
-    while True:
-        poll_track = sp.current_user_playing_track()
-        if current_track["item"]["id"] != poll_track["item"]["id"]:
-            stick()
-        time.sleep(3)
+    device_list = devices(show=False)
+    active_id = None
+    for idx, device in enumerate(device_list):
+        if device["is_active"]:
+            active_id = device_list[0]['id']   
+            break
+    return active_id
 
 if __name__ == "__main__":
     app()
