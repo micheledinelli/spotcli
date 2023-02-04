@@ -1,7 +1,7 @@
 # spotycli
 
 ```diff
-@@ A cli tool to interact with you spotify account @@
+@@ A cli tool to interact with your spotify account @@
 ```
 ## Install and run
 
