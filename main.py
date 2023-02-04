@@ -9,6 +9,9 @@ import os, re
 import spoty_client
 import inquirer
 import time
+import webbrowser
+from tqdm import tqdm
+from alive_progress import alive_bar
 
 console = Console()
 app = typer.Typer()
@@ -24,7 +27,7 @@ def isAuth():
             # refresh_token()
             return cached_token["access_token"]
     else:
-        login()
+        print("Please login first")
 
 @app.command(short_help="login")
 def login(verbose: bool = typer.Option(False, help="print the token retrieved")):
@@ -101,10 +104,10 @@ def devices(show: bool = typer.Option(False, help="show the available devices"))
 
     return device_list
 
-def queue(device_id, uri):
+def queue(uri, device_id=None):
     token = isAuth()
     sp = spotipy.Spotify(auth=token)
-    sp.add_to_queue(uri, device_id=None)
+    sp.add_to_queue(uri, device_id=device_id)
 
 @app.command()
 def search(q: str = typer.Argument("", help="query"), limit: int = typer.Option(5, help="number of results")):
@@ -128,16 +131,51 @@ def search(q: str = typer.Argument("", help="query"), limit: int = typer.Option(
     answer = inquirer.prompt(questions)
     track_name = answer['tracks']
     device_list = devices(show=False)
+    active_id = None
     for idx, device in enumerate(device_list):
         if device["is_active"]:
             active_id = device_list[0]['id']   
             break
-    if active_id is None:
-        print("No active device found")
 
     uri = name_uri_dict[track_name]
-    queue(device_id=active_id, uri=uri) 
-    sp.next_track(device_id=active_id)
+    if active_id is None:
+        print("No active device found")
+        webbrowser.open(uri)
+        transfer_on_wb(uri)
+    else:
+        queue(uri=uri, device_id=active_id) 
+        sp.next_track(device_id=active_id)
+
+@app.command(short_help="transfer playback on selected device")
+def transfer():
+    token = isAuth()
+    sp = spotipy.Spotify(auth=token)
+    device_list = devices(show=False)
+    names_id_dict = {}
+    for idx, item in enumerate(device_list):
+        names_id_dict[item["name"]] = item["id"]
+    
+    questions = [
+        inquirer.List(
+            "devices",
+            message="Where do you want to transfer the playback?",
+            choices=names_id_dict.keys(),
+        ),
+    ]
+    answwer = inquirer.prompt(questions)
+    device_name = answwer["devices"]
+    sp.transfer_playback(names_id_dict[device_name], True)
+
+def transfer_on_wb(uri):
+    time.sleep(5)
+    token = isAuth()
+    sp = spotipy.Spotify(auth=token)
+    device_list = devices(show=False)
+    print(device_list)
+    device_id = device_list[0]["id"]
+    sp.transfer_playback(device_id=device_id, force_play=True)
+    queue(uri=uri)
+    sp.next_track()
 
 @app.command(short_help="stick to the queue")
 def stick():
