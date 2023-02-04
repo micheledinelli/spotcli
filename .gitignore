@@ -1,5 +1,4 @@
 .cache
 .gitconfig
-spoty_client.py
 /.venv
 /__pycache__
