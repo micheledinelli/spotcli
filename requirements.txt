@@ -1,6 +1,6 @@
-alive_progress==3.0.1
-inquirer==3.1.2
-rich==13.3.1
-spotipy==2.22.1
-tqdm==4.64.1
-typer==0.7.0
+halo==0.0.31
+inquirer==3.2.1
+Pygments==2.14.0
+rich==13.7.0
+spotipy==2.23.0
+typer==0.9.0
