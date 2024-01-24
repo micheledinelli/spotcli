@@ -7,3 +7,5 @@ build/
 *.pyz
 *.pyw
 *.egg-info/
+
+.env
