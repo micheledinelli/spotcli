@@ -1,10 +1,68 @@
-import spoty_client
-from spotipy import util
+from dotenv import load_dotenv, find_dotenv
 import spotipy
-
+from spotipy import util
+import os
 import sys
+import re
+import typer
 
-def is_auth(sp_oauth):
+auth_app = typer.Typer(add_completion=False)
+
+load_dotenv(find_dotenv())
+
+CLIENT_ID = os.environ['SPOTIPY_CLIENT_ID']
+CLIENT_SECRET = os.environ['SPOTIPY_CLIENT_SECRET']
+SCOPE = os.environ['SPOTIPY_CLIENT_SCOPE']
+REDIRECT_URI = os.environ['SPOTIPY_REDIRECT_URI']
+
+sp_oauth = spotipy.SpotifyOAuth(client_id=CLIENT_ID,
+                                client_secret=CLIENT_SECRET,
+                                redirect_uri=REDIRECT_URI,
+                                scope=SCOPE)
+
+@auth_app.command(short_help="login")
+def login():
+    '''
+    Authenticate with Spotify and retrieve an access token.
+
+    Parameters:
+    - spoty_client: An instance of your Spotipy client containing client_id, client_secret, redirect_uri, and scope.
+
+    Returns:
+    - token: The access token if authentication is successful.
+    '''
+    token = util.prompt_for_user_token(client_id=CLIENT_ID,
+                                       client_secret=CLIENT_SECRET,
+                                       redirect_uri=REDIRECT_URI,
+                                       scope=SCOPE)
+    if token:
+        print("Succesfully logged in")
+        return token
+    else:
+        print("Can't get a valid access token")
+        sys.exit(1)
+
+@auth_app.command(short_help="logout")
+def logout():
+    '''
+    Clear cached Spotify tokens in the current directory.
+
+    This function searches for files starting with '.cache' in the current directory and removes them.
+
+    Note: Be cautious when using this function, as it permanently deletes cache files.
+
+    Returns:
+    - None
+    '''
+    # Iterate through files in the current directory
+    for f in os.listdir('./'):
+        # Check if the file name matches the pattern '^\.cache'
+        if re.search('^\.cache', f):
+            # Remove the cache file
+            os.remove(f)
+
+@auth_app.command()
+def is_auth():
     '''
     Check if the user is authenticated with Spotify.
 
@@ -24,68 +82,4 @@ def is_auth(sp_oauth):
             # If the token is still valid, return the access token
             return cached_token["access_token"]
     else:
-        # If no cached token is found ask to login
-        print("Please login first")
-        exit(0)
-
-def login():
-    '''
-    Authenticate with Spotify and retrieve an access token.
-
-    Parameters:
-    - spoty_client: An instance of your Spotipy client containing client_id, client_secret, redirect_uri, and scope.
-
-    Returns:
-    - token: The access token if authentication is successful.
-    '''
-    token = util.prompt_for_user_token(client_id=spoty_client.client_id,
-                                       client_secret=spoty_client.client_secret,
-                                       redirect_uri=spoty_client.redirect_uri,
-                                       scope=spoty_client.scope)
-    if token:
-        print("Succesfully logged in")
-        return token
-    else:
-        print("Can't get a valid access token")
-        sys.exit(1)
-
-def refresh_token(sp_oauth):
-    '''
-    Refresh the Spotify access token using the provided Spotipy OAuth instance.
-
-    Parameters:
-    - sp_oauth: An instance of SpotipyOAuth containing client_id, client_secret, redirect_uri, and other necessary information.
-
-    Returns:
-    - token: The refreshed access token.
-    '''
-    # Check if a cached token exists
-    if sp_oauth.get_cached_token():
-        # If a cached token exists, retrieve it
-        cached_token = sp_oauth.get_cached_token()
-
-        # Use the refresh token to obtain a new access token
-        token = sp_oauth.refresh_access_token(cached_token["refresh_token"])
-    else:
-        # If no cached token is found, print an error message and exit
-        print("No token found")
-        sys.exit(1)
-
-def grant_access(sp_oauth):
-    '''
-    Grant access to Spotify API by obtaining and returning a Spotify object with a valid access token.
-
-    Parameters:
-    - sp_oauth: An instance of SpotipyOAuth containing client_id, client_secret, redirect_uri, and other necessary information.
-
-    Returns:
-    - sp: A Spotify object with a valid access token.
-    '''
-    # Check if the user is authenticated and get the access token
-    token = is_auth(sp_oauth)
-
-    # Create a Spotify object with the obtained access token
-    sp = spotipy.Spotify(auth=token)
-
-    # Return the Spotify object with a valid access token
-    return sp
+        return False
