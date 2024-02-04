@@ -8,7 +8,7 @@ except(IOError, ImportError):
    long_description = open('README.md').read()
 
 setup(
-    name='spoticli-pkg',
+    name='spotcli',
     version='0.0.1',
     author="micheledinelli",
     author_email="dinellimichele00@gmail.com",
@@ -23,6 +23,9 @@ setup(
         'typer',
         'spotipy',
         'python-dotenv',
+        'halo',
+        'inquirer',
+        'Pygments',
     ],
     entry_points={
         'console_scripts': [
