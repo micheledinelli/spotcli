@@ -26,11 +26,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install build
           pip install setuptools  # Add this line to install setuptools
-      - name: Set version
-        run: |
-          version=$(python setup.py --version)
-          new_version=$(python -c "print('$version'.replace('.','.',1))")
-          sed -i "s/version='$version'/version='$new_version'/" setup.py
+      - name: Extract tag name
+        id: tag
+        run: echo ::set-output name=TAG_NAME::$(echo $GITHUB_REF | cut -d / -f 3)
+      - name: Update version in setup.py
+        run: >-
+          sed -i "s/{{VERSION_PLACEHOLDER}}/${{ steps.tag.outputs.TAG_NAME }}/g" setup.py
       - name: Build package
         run: python -m build
       - name: Publish package

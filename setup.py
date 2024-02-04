@@ -9,7 +9,7 @@ except(IOError, ImportError):
 
 setup(
     name='spotcli',
-    version='0.0.1',
+    version='{{VERSION_PLACEHOLDER}}',
     author="micheledinelli",
     author_email="dinellimichele00@gmail.com",
 
