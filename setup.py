@@ -7,16 +7,18 @@ try:
 except(IOError, ImportError):
    long_description = open('README.md').read()
 
-
 setup(
-    name='spotycli-package',
-    version='0.1.0',
+    name='spoticli-pkg',
+    version='0.0.1',
+    author="micheledinelli",
+    author_email="dinellimichele00@gmail.com",
 
     long_description_content_type="text/markdown",
 
     long_description=long_description,
 
     packages=find_packages(),
+    include_package_data=True,
     install_requires=[
         'typer',
         'spotipy',
@@ -24,7 +26,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'spotycli = main:app',
+            'spoticli = spoticli.main:app',
         ],
     },
 )
