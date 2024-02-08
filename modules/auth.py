@@ -5,8 +5,10 @@ import os
 import sys
 import re
 import typer
+from modules.utils import userdata, USERDATA_PATH
 
 auth_app = typer.Typer(add_completion=False)
+cache_handler = spotipy.cache_handler.CacheFileHandler(cache_path=USERDATA_PATH)
 
 load_dotenv(find_dotenv())
 
@@ -23,7 +25,8 @@ REDIRECT_URI="http://localhost:8081"
 sp_oauth = spotipy.SpotifyOAuth(client_id=CLIENT_ID,
                                 client_secret=CLIENT_SECRET,
                                 redirect_uri=REDIRECT_URI,
-                                scope=SCOPE)
+                                scope=SCOPE, 
+                                cache_handler=cache_handler)
 
 @auth_app.command(short_help="login")
 def login():
@@ -42,6 +45,7 @@ def login():
                                        scope=SCOPE)
     if token:
         print("Succesfully logged in")
+        userdata.set("access_token", token)
         return token
     else:
         print("Can't get a valid access token")

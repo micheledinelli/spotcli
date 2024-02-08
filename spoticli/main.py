@@ -3,14 +3,23 @@ from typing_extensions import Annotated
 
 from modules import auth, user
 
+from modules.utils import DataFile, USERDATA_PATH
+
 import spotipy
+from spotipy import CacheFileHandler
 
 from halo import Halo
 
 app = typer.Typer(add_completion=False)
-
-# Loading modules
 app.add_typer(auth.auth_app, name="auth")
+
+def main():
+    userdata = DataFile(USERDATA_PATH)
+    if not userdata.get("access_token"):
+        typer.echo("You are not logged in")
+        auth.login()
+
+    app()
 
 @app.command(short_help="returns info about the current user")
 def whoami():
@@ -37,4 +46,4 @@ def devices():
     user.devices(sp=sp)
 
 if __name__ == '__main__':
-    app()
+    main()

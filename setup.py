@@ -9,7 +9,8 @@ except(IOError, ImportError):
 
 setup(
     name='spotcli',
-    version='{{VERSION_PLACEHOLDER}}',
+    # version='{{VERSION_PLACEHOLDER}}',
+    version='0.0.1',
     author="micheledinelli",
     author_email="dinellimichele00@gmail.com",
 
@@ -29,7 +30,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'spoticli = spoticli.main:app',
+            'spoticli = spoticli.main:main',
         ],
     },
 )

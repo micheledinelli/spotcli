@@ -1,8 +1,8 @@
 halo==0.0.31
 inquirer==3.2.3
-Pygments==2.14.0
+Pygments==2.17.2
 pypandoc==1.12
-python-dotenv==1.0.1
+python-dotenv==0.19.2
 setuptools==69.0.3
 spotipy==2.23.0
 typer==0.9.0
