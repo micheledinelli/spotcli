@@ -1,0 +1,2 @@
+[console_scripts]
+spoticli = spoticli.__main__:main
