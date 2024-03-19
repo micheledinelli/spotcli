@@ -3,7 +3,7 @@ from spotipy import util
 
 import os
 
-from spoticli.utils import CLIENT_ID, CLIENT_SECRET, SCOPE, REDIRECT_URI, USERDATA_PATH
+from spotcli.utils import CLIENT_ID, CLIENT_SECRET, SCOPE, REDIRECT_URI, USERDATA_PATH
 
 def login(auth_manager: SpotifyOAuth):
     """
