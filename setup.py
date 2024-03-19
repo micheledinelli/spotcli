@@ -15,10 +15,10 @@ setup(name='spoticli',
       long_description=long_description,
       long_description_content_type='text/markdown',
       author='Dinelli Michele',
-      url='https://github.com/micheledinelli/wifind',
+      url='https://github.com/micheledinelli/spoticli',
       author_email='dinellimichele00@gmail.com',
       install_requires=[
-          'blessed', 'spotipy', 'Pygments'
+          'spotipy',
       ],
       entry_points={
           'console_scripts': ['spoticli = spoticli.__main__:main']

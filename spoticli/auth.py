@@ -2,7 +2,6 @@ from spotipy.oauth2 import SpotifyOAuth
 from spotipy import util
 
 import os
-import re
 
 from spoticli.utils import CLIENT_ID, CLIENT_SECRET, SCOPE, REDIRECT_URI, USERDATA_PATH
 
@@ -10,31 +9,30 @@ def login(auth_manager: SpotifyOAuth):
     """
     Logs in the user using the provided SpotifyOAuth authentication manager.
 
+    If the user is already logged in, it prints "Already logged in" and returns.
+    Otherwise, it prompts the user to authenticate and obtain an access token.
+    If a valid access token is obtained, it prints "Successfully logged in" and returns.
+    If a valid access token cannot be obtained, it prints "Can't get a valid access token" and exits with code 1.
+
     Args:
-        auth_manager (SpotifyOAuth): The authentication manager to use for logging in.
+        auth_manager (SpotifyOAuth): The SpotifyOAuth authentication manager.
 
     Returns:
-        str: The access token if the login is successful.
-
-    Raises:
-        SystemExit: If a valid access token cannot be obtained.
+        None
     """
-    if is_auth(auth_manager):
-        print("Already logged in")
-        return
-
     token = util.prompt_for_user_token(client_id=CLIENT_ID,
                                        client_secret=CLIENT_SECRET,
                                        redirect_uri=REDIRECT_URI,
-                                       scope=SCOPE)
+                                       scope=SCOPE,
+                                       oauth_manager=auth_manager)
     if token:
         print("Successfully logged in")
-        return token
+        return
     else:
         print("Can't get a valid access token")
         exit(1)
 
-def logout(auth_manager: SpotifyOAuth):
+def logout():
     '''
     Clear cached Spotify tokens in the current directory.
 
@@ -45,16 +43,12 @@ def logout(auth_manager: SpotifyOAuth):
     Returns:
     - None
     '''
-    if not is_auth(auth_manager=auth_manager):
+    # Remove USERDATA_PATH file
+    if os.path.exists(USERDATA_PATH):
+        os.remove(USERDATA_PATH)
+        print("Successfully logged out")
+    else:
         print("Already logged out")
-        return
-
-    # Iterate through files in the current directory
-    for f in os.listdir('./'):
-        # Check if the file name matches the pattern '^\.cache'
-        if re.search('^\.cache', f):
-            # Remove the cache file
-            os.remove(f)
 
 def is_auth(auth_manager: SpotifyOAuth):
     """
