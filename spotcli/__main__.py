@@ -1,11 +1,16 @@
 import spotipy
 import argparse
-from pprint import pprint
+from rich.live import Live
 
 from spotcli.utils import CLIENT_ID, CLIENT_SECRET, SCOPE, REDIRECT_URI, USERDATA_PATH
 from spotcli.auth import login, logout, is_auth
+from spotcli.console import console
+from spotcli.components.layout import make_layout
 
 def main():
+    """
+    Main function for the spotcli application.
+    """
 
     # Custom cache handler for absolute path
     cache_handler = spotipy.CacheFileHandler(cache_path=USERDATA_PATH)
@@ -36,22 +41,20 @@ def main():
         logout()
         exit(0)
     elif args.subcommand == "login":
+        is_user_authenticated = is_auth(auth_manager=sp_oauth)
         
-        if args.info and not is_auth(auth_manager=sp_oauth):
-            print("Please login first")
+        if args.info and is_user_authenticated:
+            console.print_json(data=sp_client.me())
             exit(0)
+        elif args.info and not is_user_authenticated:
+            console.print("You need to login first", style="warning")
 
-        if args.info and is_auth(auth_manager=sp_oauth):
-            pprint(sp_client.me())
+        if args.token and is_user_authenticated:
+            console.print_json(data=sp_oauth.get_cached_token())
             exit(0)
-
-        if args.token and not is_auth(auth_manager=sp_oauth):
-            print("Please login first")
-            exit(0)
-
-        if args.token and is_auth(auth_manager=sp_oauth):
-            pprint(sp_oauth.get_cached_token())
-            exit(0)
+        elif args.token and not is_user_authenticated:
+            console.print("You need to login first", style="warning")
+            exit(1)
 
         login(auth_manager=sp_oauth)
         exit(0)
@@ -59,7 +62,14 @@ def main():
     if not is_auth(auth_manager=sp_oauth):
         login(auth_manager=sp_oauth)
 
-    # TODO: Main Loop
+    try:
+        layout = make_layout(client=sp_client)
+        with Live(layout, refresh_per_second=10, screen=True):
+            while True:
+                pass
+    except KeyboardInterrupt:
+        console.print("Goodbye!", style="info")
+        exit(0)
 
 if __name__ == "__main__":
-    main()
+    exit(main())

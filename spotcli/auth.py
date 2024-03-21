@@ -1,6 +1,6 @@
 from spotipy.oauth2 import SpotifyOAuth
 from spotipy import util
-
+from spotcli.console import console
 import os
 
 from spotcli.utils import CLIENT_ID, CLIENT_SECRET, SCOPE, REDIRECT_URI, USERDATA_PATH
@@ -20,16 +20,20 @@ def login(auth_manager: SpotifyOAuth):
     Returns:
         None
     """
+    if is_auth(auth_manager):
+        console.print("Already logged in", style="info")
+        return
+    
     token = util.prompt_for_user_token(client_id=CLIENT_ID,
                                        client_secret=CLIENT_SECRET,
                                        redirect_uri=REDIRECT_URI,
                                        scope=SCOPE,
                                        oauth_manager=auth_manager)
     if token:
-        print("Successfully logged in")
+        console.log("Successfully logged in")
         return
     else:
-        print("Can't get a valid access token")
+        console.log("Can't get a valid access token")
         exit(1)
 
 def logout():
@@ -46,9 +50,9 @@ def logout():
     # Remove USERDATA_PATH file
     if os.path.exists(USERDATA_PATH):
         os.remove(USERDATA_PATH)
-        print("Successfully logged out")
+        console.log("Successfully logged out")
     else:
-        print("Already logged out")
+        console.log("Already logged out")
 
 def is_auth(auth_manager: SpotifyOAuth):
     """
@@ -63,4 +67,3 @@ def is_auth(auth_manager: SpotifyOAuth):
     token = auth_manager.get_cached_token()
 
     return token and not auth_manager.is_token_expired(auth_manager.get_cached_token())
-    

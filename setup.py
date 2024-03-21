@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 MAJOR_VERSION = '0'
 MINOR_VERSION = '1'
-MICRO_VERSION = '1'
+MICRO_VERSION = '2'
 VERSION = "{}.{}.{}".format(MAJOR_VERSION, MINOR_VERSION, MICRO_VERSION)
 
 setup(name='spotcli',
@@ -18,7 +18,7 @@ setup(name='spotcli',
       url='https://github.com/micheledinelli/spotcli',
       author_email='dinellimichele00@gmail.com',
       install_requires=[
-          'spotipy',
+          'spotipy', 'rich'
       ],
       entry_points={
           'console_scripts': ['spotcli = spotcli.__main__:main']
