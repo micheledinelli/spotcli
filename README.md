@@ -17,7 +17,7 @@ pip install spotcli
 
 ## Usage
 
-```sh
+```
 # shows available commands
 spotcli --help
 
